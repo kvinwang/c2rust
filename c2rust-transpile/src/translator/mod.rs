@@ -4621,7 +4621,14 @@ impl<'c> Translation<'c> {
                 module_path.push(file_name);
             }
         }
-
+        if self.ast_context.has_inner_struct_decl(decl_id) {
+            let inner_name = self.resolve_decl_inner_name(decl_id);
+            self.items
+                .borrow_mut()
+                .entry(decl_file_id)
+                .or_insert(ItemStore::new())
+                .add_use(module_path.clone(), &inner_name);
+        }
         self.items
             .borrow_mut()
             .entry(decl_file_id)
