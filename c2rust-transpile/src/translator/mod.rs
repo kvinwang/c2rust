@@ -456,7 +456,7 @@ fn prefix_names(translation: &mut Translation, prefix: &str) {
 // on whether there is a collision or not prepend the prior directory name to the path name.
 // To check for collisions, a IndexMap with the path name(key) and the path(value) associated with
 // the name. If the path name is in use, but the paths differ there is a collision.
-fn clean_path(mod_names: &RefCell<IndexMap<String, PathBuf>>, path: Option<&path::Path>) -> String {
+fn clean_path(mod_names: &RefCell<IndexMap<String, PathBuf>>, path: Option<&path::Path>, file_id: FileId) -> String {
     fn path_to_str(path: &path::Path) -> String {
         path.file_name()
             .unwrap()
@@ -466,7 +466,8 @@ fn clean_path(mod_names: &RefCell<IndexMap<String, PathBuf>>, path: Option<&path
             .replace('-', "_")
     }
 
-    let mut file_path: String = path.map_or("internal".to_string(), |path| path_to_str(path));
+    let file_path: String = path.map_or("internal".to_string(), |path| path_to_str(path));
+    let mut file_path: String = format!("{}_{}", file_path, file_id);
     let path = path.unwrap_or(path::Path::new(""));
     let mut mod_names = mod_names.borrow_mut();
     if !mod_names.contains_key(&file_path.clone()) {
@@ -907,7 +908,7 @@ fn make_submodule(
     let (mut items, foreign_items, uses) = item_store.drain();
     let file_path = ast_context.get_file_path(file_id);
     let include_line_number = ast_context.get_file_include_line_number(file_id).unwrap_or(0);
-    let mod_name = clean_path(mod_names, file_path);
+    let mod_name = clean_path(mod_names, file_path, file_id);
 
     for item in items.iter() {
         let ident_name = item.ident.name.as_str();
@@ -4613,7 +4614,8 @@ impl<'c> Translation<'c> {
             if file_id != self.main_file {
                 let file_name = clean_path(
                     &self.mod_names,
-                    self.ast_context.get_file_path(file_id)
+                    self.ast_context.get_file_path(file_id),
+                    file_id
                 );
 
                 module_path.push(file_name);
