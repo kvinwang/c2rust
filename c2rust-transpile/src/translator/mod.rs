@@ -1594,7 +1594,7 @@ impl<'c> Translation<'c> {
                     let inner_size = self.compute_size_of_ty(inner_ty)?.to_expr();
                     let padding_value =
                         mk().binary_expr(BinOpKind::Sub, outer_size, inner_size);
-                    let padding_const = mk().span(s)
+                    let padding_const = mk().vis("pub").span(s)
                         .call_attr("allow", vec!["dead_code", "non_upper_case_globals"])
                         .const_item(padding_name, padding_ty, padding_value);
 
